@@ -22,12 +22,13 @@ Table::Table(ng::Vector2i position, ng::Vector2i size)
   shader_.setUniform("intensity", 0.5f);
 }
 
-void Table::draw() {
+void Table::draw(ng::Vector2i window_size) {
   shader_.bind();
 
   ng::Matrix4f mvp;
   mvp.setIdentity();
   mvp.topLeftCorner<3, 3>() = ng::Matrix3f(Eigen::AngleAxisf((float)glfwGetTime(), ng::Vector3f::UnitZ())) * 0.25f;
+  mvp.row(0) *= (float)window_size.y() / window_size.x();
 
   shader_.setUniform("mvp", mvp);
   shader_.drawIndexed(GL_TRIANGLES, 0, 2);

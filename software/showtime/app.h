@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nanogui/nanogui.h"
+#include <memory>
 
 #include "showtime/table.h"
 
@@ -10,12 +10,12 @@ namespace ng = nanogui;
 
 class App : public ng::Screen {
 public:
-  App();
+  explicit App(GLFWwindow* screen);
   void drawContents() override;
   bool keyboardEvent(int key, int scancode, int action, int modifiers) override;
 
 private:
-  Table table_;
+  std::unique_ptr<Table> table_ = nullptr;
 };
 
 } // namespace showtime

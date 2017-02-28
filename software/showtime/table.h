@@ -11,7 +11,7 @@ public:
   Table(ng::Vector2i position, ng::Vector2i size);
   ~Table();
 
-  void draw();
+  void draw(ng::Vector2i window_size);
 
 private:
   ng::Vector2i position_;

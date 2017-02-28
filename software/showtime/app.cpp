@@ -6,9 +6,10 @@
 
 namespace showtime {
 
-App::App()
-  : ng::Screen(ng::Vector2i(1280, 720), "Showtime"),
-    table_(ng::Vector2i(200, 200), ng::Vector2i(200, 200)) {
+App::App(GLFWwindow* screen)
+  : ng::Screen() {
+  initialize(screen, true);
+
   ng::Window* window = new ng::Window(this, "My Window");
   window->setPosition(ng::Vector2i(15, 15));
   window->setLayout(new ng::GroupLayout);
@@ -23,12 +24,18 @@ App::App()
   });
   button->setTooltip("Push me!");
 
+  table_.reset(new Table(ng::Vector2i(200, 200), ng::Vector2i(200, 200)));
+
+  setVisible(true);
   performLayout();
 }
 
 void App::drawContents() {
+  glClearColor(0.2f, 0.25f, 0.3f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+
   // TODO: draw visualization?
-  table_.draw();
+  table_->draw(mSize);
 }
 
 bool App::keyboardEvent(int key, int scancode, int action, int modifiers) {
