@@ -1,0 +1,17 @@
+1) Start JLink GDB Server:
+    $ /opt/SEGGER/JLink/JLinkGDBServer -device cortex-m3 -if SWD
+
+2) From GCC-RELEASE directory of project, build:
+    $ make
+    
+3) From GCC-RELEASE directory of project, flash:
+    $ make flash
+    
+To set up project to use JLink debugger:
+    make setup GDB_SERVER=jlink
+    
+To enter GDB after chip boots from flash:
+    make debug
+
+To write program to RAM and then enter GDB (without flashing):
+    make ramdebug
