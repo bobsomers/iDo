@@ -133,7 +133,7 @@
 /******************End of iNIC configurations*******************/
 
 /* For UART Module AT command example */
-#define CONFIG_EXAMPLE_UART_ATCMD			1
+#define CONFIG_EXAMPLE_UART_ATCMD			0
 #if CONFIG_EXAMPLE_UART_ATCMD
 #undef FREERTOS_PMU_TICKLESS_PLL_RESERVED
 #define FREERTOS_PMU_TICKLESS_PLL_RESERVED  1
