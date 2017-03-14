@@ -1,5 +1,5 @@
 COMPILER=c++
-FLAGS=-std=c++11 -Wall -Werror
+FLAGS=-std=c++11 -Wall -Werror -g
 BUILD_DIR=build
 
 # Definitions for showtime binary.

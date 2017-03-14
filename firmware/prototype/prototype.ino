@@ -22,13 +22,18 @@ void setup() {
   pinMode(LED_G, OUTPUT);
   pinMode(LED_B, OUTPUT);
 
-  color.red = 255;
-  color.green = 255;
-  color.blue = 255;
+  color.red = 0;
+  color.green = 0;
+  color.blue = 0;
 }
 
 void loop() {
-  
+  color.red += dir;
+  if (color.red == 255)  {
+    dir = -1;
+  } else if (color.red == 0) {
+    dir = 1;
+  }
   paint(color);
-  delay(100);
+  delay(10);
 }

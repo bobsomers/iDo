@@ -1,8 +1,8 @@
 #version 330
 
-uniform float intensity;
+uniform vec3 clr;
 out vec4 color;
 
 void main() {
-  color = vec4(vec3(intensity), 1.0);
+  color = vec4(clr, 1.0);
 }

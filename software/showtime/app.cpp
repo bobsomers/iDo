@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <unistd.h>
 
+#include "showtime/types.h"
+
 namespace showtime {
 
 App::App(GLFWwindow* screen)
@@ -24,7 +26,8 @@ App::App(GLFWwindow* screen)
   });
   button->setTooltip("Push me!");
 
-  table_.reset(new Table(ng::Vector2i(200, 200), ng::Vector2i(200, 200)));
+  visualizer_.reset(new Visualizer);
+  visualizer_->addTable(Vec2f(0.5f, 0.5f), Vec2f(0.5f, 0.5f));
 
   setVisible(true);
   performLayout();
@@ -34,8 +37,9 @@ void App::drawContents() {
   glClearColor(0.2f, 0.25f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  // TODO: draw visualization?
-  table_->draw(mSize);
+  const float aspect_ratio = static_cast<float>(mSize.y()) / mSize.x();
+
+  visualizer_->draw(aspect_ratio);
 }
 
 bool App::keyboardEvent(int key, int scancode, int action, int modifiers) {

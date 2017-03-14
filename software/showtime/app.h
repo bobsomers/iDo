@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "showtime/table.h"
+#include "showtime/visualizer.h"
 
 namespace showtime {
 
@@ -15,7 +15,7 @@ public:
   bool keyboardEvent(int key, int scancode, int action, int modifiers) override;
 
 private:
-  std::unique_ptr<Table> table_ = nullptr;
+  std::unique_ptr<Visualizer> visualizer_ = nullptr;
 };
 
 } // namespace showtime
