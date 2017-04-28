@@ -4,9 +4,12 @@
 #include <cstdlib>
 #include <unistd.h>
 
-#include <Eigen/Dense>
+#include <GLFW/glfw3.h>
 
+#include "showtime/all_off_effect.h"
+#include "showtime/all_on_effect.h"
 #include "showtime/debug_sink.h"
+#include "showtime/test_effect.h"
 
 namespace showtime {
 
@@ -14,36 +17,71 @@ App::App(GLFWwindow* screen)
   : ng::Screen() {
   initialize(screen, true);
 
+  // Initial effect is all off.
+  setEffect(new AllOffEffect);
+
+  // Set up data sinks.
   sinks_.emplace_back(new DebugSink);
 
-  ng::Window* window = new ng::Window(this, "My Window");
-  window->setPosition(ng::Vector2i(15, 15));
-  window->setLayout(new ng::GroupLayout);
+  // Create UI.
+  createEffectsWindow();
 
-  new ng::Label(window, "My Button", "sans-bold");
-
-  ng::Button* button = new ng::Button(window, "The Button");
-  button->setCallback([this] {
-    const char* cwd = getwd(nullptr);
-    std::cout << "Working directory is :" << cwd << "\n";
-    std::free((void*)cwd);
-
-    ColorChannels c;
-    c[12] = Color(0.25, 0.5, 0.75);
-    for (auto& sink : sinks_) {
-      sink->sink(c);
-    }
-  });
-  button->setTooltip("Push me!");
-
-  //visualizer_.reset(new Visualizer);
-  //visualizer_->addTable(Vec2f(0.5f, 0.5f), Vec2f(0.5f, 0.5f));
+  // TODO: remove me
+  const char* cwd = getwd(nullptr);
+  std::cout << "Working directory is :" << cwd << "\n";
+  std::free((void*)cwd);
 
   setVisible(true);
   performLayout();
 }
 
+void App::createEffectsWindow() {
+  ng::Window* w = new ng::Window(this, "Controls");
+  w->setPosition(ng::Vector2i(15, 15));
+  w->setLayout(new ng::GroupLayout);
+
+  new ng::Label(w, "Active Effect", "sans-bold");
+
+  ng::ComboBox* cb = new ng::ComboBox(w, {
+      "       All Off       ",
+      "All On",
+      "Test Channels"
+  });
+  cb->setCallback([this](int selected) {
+    switch (selected) {
+    case 0:
+      setEffect(new AllOffEffect);
+      break;
+
+    case 1:
+      setEffect(new AllOnEffect);
+      break;
+
+    case 2:
+      setEffect(new TestEffect);
+      break;
+
+    default:
+      setEffect(new AllOffEffect);
+    }
+  });
+}
+
+void App::setEffect(Effect* new_effect) {
+  effect_ = EffectPtr(new_effect);
+  effect_t_start_ = glfwGetTime();
+}
+
 void App::drawContents() {
+  // TODO: move this background thread?
+  ColorChannels c;
+  if (effect_) {
+    c = effect_->process(glfwGetTime() - effect_t_start_, nullptr);
+  }
+  for (auto& sink : sinks_) {
+    sink->sink(c);
+  }
+
   glClearColor(0.2f, 0.25f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
