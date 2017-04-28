@@ -1,43 +1,41 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include <array>
+#include <cstdint>
 
 namespace showtime {
 
-template <typename T>
-struct Vec2 {
-  Vec2(T x, T y) : x(x), y(y) {}
-  Eigen::Matrix<T, 2, 1> eigen() { return Eigen::Matrix<T, 2, 1>(x, y); }
-  T x;
-  T y;
+struct Color {
+  Color() : r(0.0f), g(0.0f), b(0.0f) {}
+  Color(float r, float g, float b) : r(r), g(g), b(b) {}
+
+  float r;
+  float g;
+  float b;
 };
 
-using Vec2i = Vec2<int>;
-using Vec2f = Vec2<float>;
+struct ByteColor {
+  ByteColor() : r(0), g(0), b(0) {}
+  explicit ByteColor(Color c)
+    : r(c.r * 255.0f), g(c.g * 255.0f), b(c.b * 255.0f) {}
 
-template <typename T>
-struct Vec3 {
-  Vec3(T x, T y, T z) : x(x), y(y), z(z) {}
-  Eigen::Matrix<T, 3, 1> eigen() { return Eigen::Matrix<T, 3, 1>(x, y, z); }
-  T x;
-  T y;
-  T z;
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
 };
 
-using Vec3i = Vec3<int>;
-using Vec3f = Vec3<float>;
+constexpr int kNumChannels = 26;
+using ColorChannels = std::array<Color, kNumChannels>;
+using ByteColorChannels = std::array<ByteColor, kNumChannels>;
 
-template <typename T>
-struct Vec4 {
-  Vec4(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
-  Eigen::Matrix<T, 4, 1> eigen() { return Eigen::Matrix<T, 4, 1>(x, y, z, w); }
-  T x;
-  T y;
-  T z;
-  T w;
-};
+inline ByteColorChannels quantizeChannels(ColorChannels channels) {
+  ByteColorChannels bytes;
+  static_assert(channels.size() == bytes.size(),
+      "Color and ByteColor have different number of channels!");
+  for (std::size_t i = 0; i < channels.size(); ++i) {
+    bytes[i] = ByteColor(channels[i]);
+  }
+  return bytes;
+}
 
-using Vec4i = Vec4<int>;
-using Vec4f = Vec4<float>;
-
-} // namespace
+} // namespace showtime

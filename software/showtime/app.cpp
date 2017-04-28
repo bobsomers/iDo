@@ -4,13 +4,17 @@
 #include <cstdlib>
 #include <unistd.h>
 
-#include "showtime/types.h"
+#include <Eigen/Dense>
+
+#include "showtime/debug_sink.h"
 
 namespace showtime {
 
 App::App(GLFWwindow* screen)
   : ng::Screen() {
   initialize(screen, true);
+
+  sinks_.emplace_back(new DebugSink);
 
   ng::Window* window = new ng::Window(this, "My Window");
   window->setPosition(ng::Vector2i(15, 15));
@@ -19,15 +23,21 @@ App::App(GLFWwindow* screen)
   new ng::Label(window, "My Button", "sans-bold");
 
   ng::Button* button = new ng::Button(window, "The Button");
-  button->setCallback([] {
+  button->setCallback([this] {
     const char* cwd = getwd(nullptr);
     std::cout << "Working directory is :" << cwd << "\n";
     std::free((void*)cwd);
+
+    ColorChannels c;
+    c[12] = Color(0.25, 0.5, 0.75);
+    for (auto& sink : sinks_) {
+      sink->sink(c);
+    }
   });
   button->setTooltip("Push me!");
 
-  visualizer_.reset(new Visualizer);
-  visualizer_->addTable(Vec2f(0.5f, 0.5f), Vec2f(0.5f, 0.5f));
+  //visualizer_.reset(new Visualizer);
+  //visualizer_->addTable(Vec2f(0.5f, 0.5f), Vec2f(0.5f, 0.5f));
 
   setVisible(true);
   performLayout();
@@ -37,9 +47,9 @@ void App::drawContents() {
   glClearColor(0.2f, 0.25f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  const float aspect_ratio = static_cast<float>(mSize.y()) / mSize.x();
+  //const float aspect_ratio = static_cast<float>(mSize.y()) / mSize.x();
 
-  visualizer_->draw(aspect_ratio);
+  //visualizer_->draw(aspect_ratio);
 }
 
 bool App::keyboardEvent(int key, int scancode, int action, int modifiers) {
