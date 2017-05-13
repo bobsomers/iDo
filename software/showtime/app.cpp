@@ -15,6 +15,10 @@
 
 namespace showtime {
 
+constexpr int kDebugSink = 0;
+constexpr int kNetworkSink = 1;
+constexpr int kVisualizerSink = 2;
+
 App::App(GLFWwindow* screen)
   : ng::Screen() {
   initialize(screen, true);
@@ -23,7 +27,9 @@ App::App(GLFWwindow* screen)
   setEffect(new AllOffEffect);
 
   // Set up data sinks.
-  sinks_.emplace_back(new DebugSink);
+  sinks_[kDebugSink] = nullptr;
+  sinks_[kNetworkSink] = nullptr;
+  sinks_[kVisualizerSink] = nullptr;
 
   // Create UI.
   createControlsWindow();
@@ -72,17 +78,17 @@ void App::createControlsWindow() {
 
   ng::CheckBox* box = new ng::CheckBox(w, "Debug");
   box->setCallback([this](bool checked) {
-    // TODO
+    sinks_[kDebugSink].reset((checked) ? new DebugSink : nullptr);
   });
 
   box = new ng::CheckBox(w, "Network");
   box->setCallback([this](bool checked) {
-    // TODO
+    sinks_[kNetworkSink].reset((checked) ? new NetworkSink : nullptr);
   });
 
   box = new ng::CheckBox(w, "Visualizer");
   box->setCallback([this](bool checked) {
-    // TODO
+    sinks_[kVisualizerSink].reset((checked) ? new VisualizerSink : nullptr);
   });
 }
 
@@ -98,7 +104,9 @@ void App::drawContents() {
     c = effect_->process(glfwGetTime() - effect_t_start_, nullptr);
   }
   for (auto& sink : sinks_) {
-    sink->sink(c);
+    if (sink) {
+      sink->sink(c);
+    }
   }
 
   glClearColor(0.2f, 0.25f, 0.3f, 1.0f);

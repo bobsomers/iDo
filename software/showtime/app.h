@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <memory>
 #include <vector>
 
@@ -14,7 +15,7 @@ namespace ng = nanogui;
 
 using EffectPtr = std::unique_ptr<Effect>;
 using SinkPtr = std::unique_ptr<Sink>;
-using Sinks = std::vector<SinkPtr>;
+using Sinks = std::array<SinkPtr, 3>;
 
 class App : public ng::Screen {
 public:
