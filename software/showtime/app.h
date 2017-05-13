@@ -23,7 +23,7 @@ public:
   bool keyboardEvent(int key, int scancode, int action, int modifiers) override;
 
 private:
-  void createEffectsWindow();
+  void createControlsWindow();
   void setEffect(Effect* new_effect);
 
   EffectPtr effect_ = nullptr;

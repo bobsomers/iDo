@@ -9,7 +9,9 @@
 #include "showtime/all_off_effect.h"
 #include "showtime/all_on_effect.h"
 #include "showtime/debug_sink.h"
+#include "showtime/network_sink.h"
 #include "showtime/test_effect.h"
+#include "showtime/visualizer_sink.h"
 
 namespace showtime {
 
@@ -24,7 +26,7 @@ App::App(GLFWwindow* screen)
   sinks_.emplace_back(new DebugSink);
 
   // Create UI.
-  createEffectsWindow();
+  createControlsWindow();
 
   // TODO: remove me
   const char* cwd = getwd(nullptr);
@@ -35,7 +37,7 @@ App::App(GLFWwindow* screen)
   performLayout();
 }
 
-void App::createEffectsWindow() {
+void App::createControlsWindow() {
   ng::Window* w = new ng::Window(this, "Controls");
   w->setPosition(ng::Vector2i(15, 15));
   w->setLayout(new ng::GroupLayout);
@@ -64,6 +66,23 @@ void App::createEffectsWindow() {
     default:
       setEffect(new AllOffEffect);
     }
+  });
+
+  new ng::Label(w, "Output Sink", "sans-bold");
+
+  ng::CheckBox* box = new ng::CheckBox(w, "Debug");
+  box->setCallback([this](bool checked) {
+    // TODO
+  });
+
+  box = new ng::CheckBox(w, "Network");
+  box->setCallback([this](bool checked) {
+    // TODO
+  });
+
+  box = new ng::CheckBox(w, "Visualizer");
+  box->setCallback([this](bool checked) {
+    // TODO
   });
 }
 
