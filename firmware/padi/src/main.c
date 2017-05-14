@@ -4,6 +4,7 @@
 #include "device.h"
 #include <platform_opts.h>
 #include <platform_stdlib.h>
+#include "gpio_api.h"
 #include "pwmout_api.h"
 #include "lwip_netconf.h"
 #include "wifi_conf.h"
@@ -11,7 +12,15 @@
 
 // Test Config
 #define TEST_STACK_SIZE 256
-#define TEST_PRIORITY tskIDLE_PRIORITY + 2
+#define TEST_PRIORITY tskIDLE_PRIORITY + 1
+
+// Status Config
+#define STATUS_RED_LED_PIN PA_3
+#define STATUS_ORANGE_LED_PIN PA_5
+#define STATUS_STACK_SIZE 256
+#define STATUS_PRIORITY tskIDLE_PRIORITY + 2
+#define STATUS_POWERED 1
+#define STATUS_CONNECTED 2
 
 // PWM Config
 #define PWM_R PC_1
@@ -34,6 +43,10 @@ struct Color {
 pwmout_t pwm_r;
 pwmout_t pwm_g;
 pwmout_t pwm_b;
+
+volatile int current_status = STATUS_POWERED;
+gpio_t status_red_led;
+gpio_t status_orange_led;
 
 void rgb_led_set(struct Color clr) {
   int red = (clr.r * PWM_PERIOD) / 255;
@@ -60,8 +73,6 @@ void rgb_led_init() {
 
 void test_task(void* pvParameters) {
   const TickType_t delay = 10 / portTICK_PERIOD_MS;
-
-  printf("%s delay = %d\r\n", __FUNCTION__, 10 / portTICK_PERIOD_MS);
 
   struct Color clr;
   clr.r = 255;
@@ -101,6 +112,43 @@ void test_init() {
     printf("%s xTaskCreate(test_task) failed\r\n", __FUNCTION__);
   } else {
     printf("%s created test_task\r\n", __FUNCTION__);
+  }
+}
+
+void status_task(void* pvParameters) {
+  const TickType_t short_delay = 100 / portTICK_PERIOD_MS;
+  const TickType_t long_delay = 5000 / portTICK_PERIOD_MS;
+
+  while (1) {
+    gpio_write(&status_red_led, 1);
+    vTaskDelay(short_delay);
+    gpio_write(&status_red_led, 0);
+
+    if (current_status == STATUS_CONNECTED) {
+      gpio_write(&status_orange_led, 1);
+      vTaskDelay(short_delay);
+      gpio_write(&status_orange_led, 0);
+    }
+
+    vTaskDelay(long_delay);
+  }
+}
+
+void status_init() {
+  gpio_init(&status_red_led, STATUS_RED_LED_PIN);
+  gpio_dir(&status_red_led, PIN_OUTPUT);
+  gpio_mode(&status_red_led, PullNone);
+  gpio_write(&status_red_led, 0);
+
+  gpio_init(&status_orange_led, STATUS_ORANGE_LED_PIN);
+  gpio_dir(&status_orange_led, PIN_OUTPUT);
+  gpio_mode(&status_orange_led, PullNone);
+  gpio_write(&status_orange_led, 0);
+
+  if (xTaskCreate(status_task, "status_task", STATUS_STACK_SIZE, NULL, STATUS_PRIORITY, NULL) != pdPASS) {
+    printf("%s xTaskCreate(status_task) failed\r\n", __FUNCTION__);
+  } else {
+    printf("%s created status_task\r\n", __FUNCTION__);
   }
 }
 
@@ -162,6 +210,10 @@ void main() {
 
   /*wlan_init();*/
 
+  // Initialize status LEDs.
+  status_init();
+
+  // Initialize RGB LED.
   rgb_led_init();
   printf("Initialized RGB LED.\r\n");
   struct Color clr;
@@ -171,7 +223,7 @@ void main() {
   rgb_led_set(clr);
   printf("Set initial color to <%d, %d, %d>\r\n", clr.r, clr.g, clr.b);
 
-  // Run test mode. Comment out for production.
+  // Test mode. Comment out for production.
   test_init();
 
   printf("Initializing console and starting scheduler.\r\n");

@@ -3,13 +3,13 @@
 
 2) From GCC-RELEASE directory of project, build:
     $ make
-    
+
 3) From GCC-RELEASE directory of project, flash:
     $ make flash
-    
+
 To set up project to use JLink debugger:
     make setup GDB_SERVER=jlink
-    
+
 To enter GDB after chip boots from flash:
     make debug
 
