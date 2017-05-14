@@ -27,9 +27,9 @@ App::App(GLFWwindow* screen)
   setEffect(new AllOffEffect);
 
   // Set up data sinks.
-  sinks_[kDebugSink] = nullptr;
-  sinks_[kNetworkSink] = nullptr;
-  sinks_[kVisualizerSink] = nullptr;
+  sinks_[kDebugSink].reset(new DebugSink);
+  sinks_[kNetworkSink].reset(new NetworkSink);
+  sinks_[kVisualizerSink].reset(new VisualizerSink);
 
   // Create UI.
   createControlsWindow();
@@ -78,17 +78,17 @@ void App::createControlsWindow() {
 
   ng::CheckBox* box = new ng::CheckBox(w, "Debug");
   box->setCallback([this](bool checked) {
-    sinks_[kDebugSink].reset((checked) ? new DebugSink : nullptr);
+    sinks_[kDebugSink]->setActive(checked);
   });
 
   box = new ng::CheckBox(w, "Network");
   box->setCallback([this](bool checked) {
-    sinks_[kNetworkSink].reset((checked) ? new NetworkSink : nullptr);
+    sinks_[kNetworkSink]->setActive(checked);
   });
 
   box = new ng::CheckBox(w, "Visualizer");
   box->setCallback([this](bool checked) {
-    sinks_[kVisualizerSink].reset((checked) ? new VisualizerSink : nullptr);
+    sinks_[kVisualizerSink]->setActive(checked);
   });
 }
 
@@ -103,18 +103,15 @@ void App::drawContents() {
   if (effect_) {
     c = effect_->process(glfwGetTime() - effect_t_start_, nullptr);
   }
-  for (auto& sink : sinks_) {
-    if (sink) {
-      sink->sink(c);
-    }
-  }
 
   glClearColor(0.2f, 0.25f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  //const float aspect_ratio = static_cast<float>(mSize.y()) / mSize.x();
-
-  //visualizer_->draw(aspect_ratio);
+  for (auto& sink : sinks_) {
+    if (sink->active()) {
+      sink->sink(c);
+    }
+  }
 }
 
 bool App::keyboardEvent(int key, int scancode, int action, int modifiers) {

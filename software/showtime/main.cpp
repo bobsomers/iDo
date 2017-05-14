@@ -50,7 +50,7 @@ int main() {
   glfwWindowHint(GLFW_DEPTH_BITS, 24);
   glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
-  GLFWwindow* window = glfwCreateWindow(1280, 720, "Showtime", nullptr, nullptr);
+  GLFWwindow* window = glfwCreateWindow(1280, 600, "Showtime", nullptr, nullptr);
   if (!window) {
       std::cerr << "Failed to create GLFW window.\n";
       glfwTerminate();
