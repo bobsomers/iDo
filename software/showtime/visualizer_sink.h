@@ -16,7 +16,9 @@ public:
 
 private:
   void makeTables();
+  void makeLights();
   nanogui::GLShader table_shader_;
+  nanogui::GLShader light_shader_;
 };
 
 } // namespace showtime
