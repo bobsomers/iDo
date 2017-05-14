@@ -9,13 +9,15 @@
 #include "wifi_conf.h"
 #include "main.h"
 
+// Test Config
+#define TEST_STACK_SIZE 256
+#define TEST_PRIORITY tskIDLE_PRIORITY + 2
+
 // PWM Config
 #define PWM_R PC_1
 #define PWM_G PC_3
 #define PWM_B PC_0
 #define PWM_PERIOD 2000 // 500 Hz
-#define PWM_STACK_SIZE 128
-#define PWM_PRIORITY tskIDLE_PRIORITY + 1
 
 // WLAN Config
 #define WLAN_SSID ""
@@ -33,25 +35,16 @@ pwmout_t pwm_r;
 pwmout_t pwm_g;
 pwmout_t pwm_b;
 
-QueueHandle_t color_queue;
-
-void pwm_task(void* pvParameters) {
-  struct Color clr;
-  if (color_queue != 0) {
-    while (1) {
-      if (xQueueReceive(color_queue, &clr, portMAX_DELAY)) {
-        int red = (clr.r * PWM_PERIOD) / 255;
-        int green = (clr.g * PWM_PERIOD) / 255;
-        int blue = (clr.b * PWM_PERIOD) / 255;
-        pwmout_pulsewidth_us(&pwm_r, red);
-        pwmout_pulsewidth_us(&pwm_g, green);
-        pwmout_pulsewidth_us(&pwm_b, blue);
-      }
-    }
-  }
+void rgb_led_set(struct Color clr) {
+  int red = (clr.r * PWM_PERIOD) / 255;
+  int green = (clr.g * PWM_PERIOD) / 255;
+  int blue = (clr.b * PWM_PERIOD) / 255;
+  pwmout_pulsewidth_us(&pwm_r, red);
+  pwmout_pulsewidth_us(&pwm_g, green);
+  pwmout_pulsewidth_us(&pwm_b, blue);
 }
 
-void pwm_init() {
+void rgb_led_init() {
   pwmout_init(&pwm_r, PWM_R);
   pwmout_init(&pwm_g, PWM_G);
   pwmout_init(&pwm_b, PWM_B);
@@ -63,9 +56,51 @@ void pwm_init() {
   pwmout_pulsewidth_us(&pwm_r, 0);
   pwmout_pulsewidth_us(&pwm_g, 0);
   pwmout_pulsewidth_us(&pwm_b, 0);
+}
 
-  if (xTaskCreate(pwm_task, "pwm_task", PWM_STACK_SIZE, NULL, PWM_PRIORITY, NULL) != pdPASS) {
-    printf("\r\n%s xTaskCreate(pwm_task) failed", __FUNCTION__);
+void test_task(void* pvParameters) {
+  const TickType_t delay = 10 / portTICK_PERIOD_MS;
+
+  printf("%s delay = %d\r\n", __FUNCTION__, 10 / portTICK_PERIOD_MS);
+
+  struct Color clr;
+  clr.r = 255;
+  clr.g = 0;
+  clr.b = 0;
+
+  while (1) {
+    if (clr.r > 0) {
+      --clr.r;
+      if (clr.r == 0) {
+        clr.g = 255;
+      }
+    } else if (clr.g > 0) {
+      --clr.g;
+      if (clr.g == 0) {
+        clr.b = 255;
+      }
+    } else if (clr.b > 0) {
+      --clr.b;
+      if (clr.b == 0) {
+        clr.r = 255;
+      }
+    } else {
+      printf("%s WAT. All colors were 0 in test_task!\r\n", __FUNCTION__);
+      clr.r = 255;
+      clr.g = 0;
+      clr.b = 0;
+    }
+
+    rgb_led_set(clr);
+    vTaskDelay(delay);
+  }
+}
+
+void test_init() {
+  if (xTaskCreate(test_task, "test_task", TEST_STACK_SIZE, NULL, TEST_PRIORITY, NULL) != pdPASS) {
+    printf("%s xTaskCreate(test_task) failed\r\n", __FUNCTION__);
+  } else {
+    printf("%s created test_task\r\n", __FUNCTION__);
   }
 }
 
@@ -92,7 +127,7 @@ int wlan_connect() {
       if (ret == DHCP_ADDRESS_ASSIGNED) {
         return RTW_SUCCESS;
       } else {
-        printf("\r\n%s DHCP failed", __FUNCTION__);
+        printf("%s DHCP failed\r\n", __FUNCTION__);
         return RTW_ERROR;
       }
     }
@@ -102,47 +137,42 @@ int wlan_connect() {
 void wlan_init_thread(void* params) {
   LwIP_Init();
   if (wifi_manager_init() != RTW_SUCCESS) {
-    printf("\r\n%s wifi_manager_init() failed", __FUNCTION__);
+    printf("%s wifi_manager_init() failed\r\n", __FUNCTION__);
   }
   if (wifi_on(RTW_MODE_STA) != RTW_SUCCESS) {
-    printf("\r\n%s wifi_on() failed", __FUNCTION__);
+    printf("%s wifi_on() failed\r\n", __FUNCTION__);
   }
   if (wifi_set_autoreconnect(1) != RTW_SUCCESS) {
-    printf("\r\n%s wifi_set_autoreconnect() failed", __FUNCTION__);
+    printf("%s wifi_set_autoreconnect() failed\r\n", __FUNCTION__);
   }
   if (wlan_connect() != RTW_SUCCESS) {
-    printf("\r\n%s wifi_connect() failed", __FUNCTION__);
+    printf("%s wifi_connect() failed\r\n", __FUNCTION__);
   }
   vTaskDelete(NULL);
 }
 
 void wlan_init() {
   if (xTaskCreate(wlan_init_thread, ((const char*)"wlan_init_thread"), WLAN_INIT_STACK_SIZE, NULL, WLAN_INIT_PRIORITY, NULL) != pdPASS) {
-    printf("\r\n%s xTaskCreate(wlan_init_thread) failed", __FUNCTION__);
+    printf("%s xTaskCreate(wlan_init_thread) failed\r\n", __FUNCTION__);
   }
 }
 
 void main() {
   printf("iDo is booting!\r\n");
 
-  wlan_init();
+  /*wlan_init();*/
 
-  color_queue = xQueueCreate(4, sizeof(struct Color));
-  if (color_queue == 0) {
-    printf("Failed to create color_queue!\r\n");
-  }
-  printf("Created color queue.\r\n");
-
-  pwm_init();
-  printf("Initialized PWM.\r\n");
-
+  rgb_led_init();
+  printf("Initialized RGB LED.\r\n");
   struct Color clr;
   clr.r = 128;
   clr.g = 30;
   clr.b = 150;
-  xQueueSend(color_queue, &clr, 0);
-
+  rgb_led_set(clr);
   printf("Set initial color to <%d, %d, %d>\r\n", clr.r, clr.g, clr.b);
+
+  // Run test mode. Comment out for production.
+  test_init();
 
   printf("Initializing console and starting scheduler.\r\n");
   console_init();
