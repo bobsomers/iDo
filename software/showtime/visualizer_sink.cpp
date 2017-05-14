@@ -28,11 +28,19 @@ VisualizerSink::~VisualizerSink() {
 }
 
 void VisualizerSink::sink(ColorChannels channels) {
-  // TODO: copy channel colors to buffer
+  ng::MatrixXf colors(3, 4 * kNumLights);
+  for (int i = 0; i < kNumLights; ++i) {
+    Color c = channels[i];
+    colors.col(4 * i + 0) << c.r, c.g, c.b;
+    colors.col(4 * i + 1) << c.r, c.g, c.b;
+    colors.col(4 * i + 2) << c.r, c.g, c.b;
+    colors.col(4 * i + 3) << c.r, c.g, c.b;
+  }
 
   table_shader_.bind();
   table_shader_.drawIndexed(GL_TRIANGLES, 0, 2 * kNumTables);
   light_shader_.bind();
+  light_shader_.uploadAttrib("vertex_color", colors);
   light_shader_.drawIndexed(GL_TRIANGLES, 0, 2 * kNumLights);
 }
 
@@ -81,9 +89,7 @@ void VisualizerSink::makeLights() {
     std::cout << "Failied to load color_rect shader!" << std::endl;
   }
 
-
   ng::MatrixXf verts(2, 4 * kNumLights);
-  ng::MatrixXf colors(3, 4 * kNumLights);
   ng::MatrixXu indices(3, 2 * kNumLights);
   for (int i = 0; i < kNumLights; ++i) {
     int row = (i / 2) % 4;
@@ -97,11 +103,6 @@ void VisualizerSink::makeLights() {
     verts.col(4 * i + 1) << x2, y1;
     verts.col(4 * i + 2) << x2, y2;
     verts.col(4 * i + 3) << x1, y2;
-
-    colors.col(4 * i + 0) << 1.0f, 0.0f, 0.0f;
-    colors.col(4 * i + 1) << 0.0f, 1.0f, 0.0f;
-    colors.col(4 * i + 2) << 0.0f, 0.0f, 1.0f;
-    colors.col(4 * i + 3) << 1.0f, 1.0f, 1.0f;
 
     indices.col(2 * i + 0) << (4 * i + 0), (4 * i + 1), (4 * i + 2);
     indices.col(2 * i + 1) << (4 * i + 2), (4 * i + 3), (4 * i + 0);
@@ -117,11 +118,6 @@ void VisualizerSink::makeLights() {
     verts.col(4 * i + 2) << x2, y2;
     verts.col(4 * i + 3) << x1, y2;
 
-    colors.col(4 * i + 0) << 1.0f, 0.0f, 0.0f;
-    colors.col(4 * i + 1) << 0.0f, 1.0f, 0.0f;
-    colors.col(4 * i + 2) << 0.0f, 0.0f, 1.0f;
-    colors.col(4 * i + 3) << 1.0f, 1.0f, 1.0f;
-
     indices.col(2 * i + 0) << (4 * i + 0), (4 * i + 1), (4 * i + 2);
     indices.col(2 * i + 1) << (4 * i + 2), (4 * i + 3), (4 * i + 0);
   }
@@ -129,7 +125,6 @@ void VisualizerSink::makeLights() {
   light_shader_.bind();
   light_shader_.uploadIndices(indices);
   light_shader_.uploadAttrib("vertex_position", verts);
-  light_shader_.uploadAttrib("vertex_color", colors);
 }
 
 } // namespace showtime
