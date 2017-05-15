@@ -29,8 +29,9 @@
 #define PWM_PERIOD 2000 // 500 Hz
 
 // WLAN Config
-#define WLAN_SSID ""
-#define WLAN_PASS ""
+#define WLAN_SSID "iDoNetwork"
+#define WLAN_PASS "wildflower"
+#define WLAN_CHANNEL 6
 #define WLAN_INIT_STACK_SIZE (512 + 768)
 #define WLAN_INIT_PRIORITY tskIDLE_PRIORITY + 3
 
@@ -157,9 +158,17 @@ int wlan_connect() {
   int ssid_len = strlen(WLAN_SSID);
   int pw_len = strlen(WLAN_PASS);
   rtw_wifi_setting_t setting;
-  while (1) {
-    // TODO: wifi_set_pscan_chan()???
 
+  while (1) {
+    printf("%s Disconnecting just in case.\r\n", __FUNCTION__);
+    wifi_disconnect();
+
+    printf("%s Attempting partial scan.\r\n", __FUNCTION__);
+    uint8_t channel = WLAN_CHANNEL;
+    uint8_t pscan_config = PSCAN_ENABLE | PSCAN_SIMPLE_CONFIG;
+    wifi_set_pscan_chan(&channel, &pscan_config, 1);
+
+    printf("%s Attempting to connect.\r\n", __FUNCTION__);
     ret = wifi_connect(WLAN_SSID,
                        RTW_SECURITY_WPA2_AES_PSK,
                        WLAN_PASS,
@@ -169,15 +178,19 @@ int wlan_connect() {
                        NULL);
 
     if (ret == RTW_SUCCESS) {
+      printf("%s Connection succeeded, attempting DHCP.\r\n", __FUNCTION__);
       ret = LwIP_DHCP(0, DHCP_START);
       wifi_get_setting(WLAN0_NAME, &setting);
       wifi_show_setting(WLAN0_NAME, &setting);
       if (ret == DHCP_ADDRESS_ASSIGNED) {
+        printf("%s DHCP succeeded.\r\n", __FUNCTION__);
         return RTW_SUCCESS;
       } else {
-        printf("%s DHCP failed\r\n", __FUNCTION__);
+        printf("%s DHCP failed.\r\n", __FUNCTION__);
         return RTW_ERROR;
       }
+    } else {
+      printf("%s Connection failed.\r\n", __FUNCTION__);
     }
   }
 }
@@ -195,6 +208,8 @@ void wlan_init_thread(void* params) {
   }
   if (wlan_connect() != RTW_SUCCESS) {
     printf("%s wifi_connect() failed\r\n", __FUNCTION__);
+  } else {
+    current_status = STATUS_CONNECTED;
   }
   vTaskDelete(NULL);
 }
@@ -207,8 +222,6 @@ void wlan_init() {
 
 void main() {
   printf("iDo is booting!\r\n");
-
-  /*wlan_init();*/
 
   // Initialize status LEDs.
   status_init();
@@ -223,8 +236,11 @@ void main() {
   rgb_led_set(clr);
   printf("Set initial color to <%d, %d, %d>\r\n", clr.r, clr.g, clr.b);
 
-  // Test mode. Comment out for production.
-  test_init();
+  // Start Wi-Fi connection.
+  wlan_init();
+
+  // Test mode.
+  //test_init();
 
   printf("Initializing console and starting scheduler.\r\n");
   console_init();
