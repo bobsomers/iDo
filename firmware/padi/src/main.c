@@ -35,10 +35,18 @@
 #define WLAN_INIT_STACK_SIZE (512 + 768)
 #define WLAN_INIT_PRIORITY tskIDLE_PRIORITY + 3
 
+// Listener Config
+#define LISTENER_STACK_SIZE WLAN_INIT_STACK_SIZE
+#define LISTENER_PRIORITY tskIDLE_PRIORITY + 2
+#define LISTENER_PORT 12345
+
+// Identification Config
+#define UNIT_NUMBER 0
+
 struct Color {
-  unsigned char r;
-  unsigned char g;
-  unsigned char b;
+  u8_t r;
+  u8_t g;
+  u8_t b;
 };
 
 pwmout_t pwm_r;
@@ -48,6 +56,8 @@ pwmout_t pwm_b;
 volatile int current_status = STATUS_POWERED;
 gpio_t status_red_led;
 gpio_t status_orange_led;
+
+struct udp_pcb* listener_pcb;
 
 void rgb_led_set(struct Color clr) {
   int red = (clr.r * PWM_PERIOD) / 255;
@@ -153,6 +163,36 @@ void status_init() {
   }
 }
 
+void listener_recv(void* arg, struct udp_pcb* pcb, struct pbuf* buf, struct ip_addr* addr, u16_t port) {
+  if (buf != NULL) {
+    if (buf->tot_len == 78) { // 78 bytes is RGB (3 bytes) for 26 channels
+      u8_t* data = (u8_t*)(buf->payload);
+      struct Color clr;
+      clr.r = data[UNIT_NUMBER * 3 + 0];
+      clr.g = data[UNIT_NUMBER * 3 + 1];
+      clr.b = data[UNIT_NUMBER * 3 + 2];
+      rgb_led_set(clr);
+    }
+    pbuf_free(buf);
+  }
+}
+
+void listener_init() {
+  listener_pcb = udp_new();
+  if (udp_bind(listener_pcb, IP_ADDR_ANY, LISTENER_PORT) != ERR_OK) {
+    printf("%s Failed to bind UDP socket to addr/port!\r\n", __FUNCTION__);
+    return;
+  }
+  udp_recv(listener_pcb, listener_recv, NULL);
+  printf("%s UDP socket bound to port %d and listening!\r\n", __FUNCTION__, LISTENER_PORT);
+
+  //if (xTaskCreate(udp_task), "udp_task", UDP_STACK_SIZE, NULL, UDP_PRIORITY, NULL) != pdPass) {
+  //  printf("%s xTaskCreate(udp_task) failed.\r\n", __FUNCTION__);
+  //} else {
+  //  printf("%s created udp_task\r\n", __FUNCTION__);
+  //}
+}
+
 int wlan_connect() {
   int ret = RTW_ERROR;
   int ssid_len = strlen(WLAN_SSID);
@@ -210,12 +250,13 @@ void wlan_init_thread(void* params) {
     printf("%s wifi_connect() failed\r\n", __FUNCTION__);
   } else {
     current_status = STATUS_CONNECTED;
+    listener_init();
   }
   vTaskDelete(NULL);
 }
 
 void wlan_init() {
-  if (xTaskCreate(wlan_init_thread, ((const char*)"wlan_init_thread"), WLAN_INIT_STACK_SIZE, NULL, WLAN_INIT_PRIORITY, NULL) != pdPASS) {
+  if (xTaskCreate(wlan_init_thread, "wlan_init_thread", WLAN_INIT_STACK_SIZE, NULL, WLAN_INIT_PRIORITY, NULL) != pdPASS) {
     printf("%s xTaskCreate(wlan_init_thread) failed\r\n", __FUNCTION__);
   }
 }
@@ -230,9 +271,9 @@ void main() {
   rgb_led_init();
   printf("Initialized RGB LED.\r\n");
   struct Color clr;
-  clr.r = 128;
-  clr.g = 30;
-  clr.b = 150;
+  clr.r = 0;
+  clr.g = 0;
+  clr.b = 0;
   rgb_led_set(clr);
   printf("Set initial color to <%d, %d, %d>\r\n", clr.r, clr.g, clr.b);
 
