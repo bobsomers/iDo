@@ -1,5 +1,7 @@
 #include "showtime/network_sink.h"
 
+#include <GLFW/glfw3.h>
+
 #include <cstdlib>
 #include <iostream>
 #include <arpa/inet.h>
@@ -41,6 +43,8 @@ NetworkSink::NetworkSink() {
   addr_.sin_addr.s_addr = htonl(-1); // 255.255.255.255
   addr_.sin_port = htons(kPort);
   addr_.sin_family = PF_INET;
+
+  last_packet_time_ = glfwGetTime();
 }
 
 NetworkSink::~NetworkSink() {
@@ -49,9 +53,14 @@ NetworkSink::~NetworkSink() {
 }
 
 void NetworkSink::sink(ColorChannels channels) {
-  packet_ = quantizeChannels(channels);
-  sendto(socket_, packet_.data(), packet_.size() * sizeof(ByteColor), 0,
-         (sockaddr*)&addr_, sizeof(addr_));
+  const double delay = 0.1;
+  const double now = glfwGetTime();
+  if (now >= last_packet_time_ + delay) {
+    packet_ = quantizeChannels(channels);
+    sendto(socket_, packet_.data(), packet_.size() * sizeof(ByteColor), 0,
+           (sockaddr*)&addr_, sizeof(addr_));
+    last_packet_time_ = now;
+  }
 }
 
 } // namespace showtime

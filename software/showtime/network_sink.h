@@ -18,6 +18,7 @@ private:
   int socket_;
   sockaddr_in addr_;
   ByteColorChannels packet_;
+  double last_packet_time_;
 };
 
 } // namespace showtime
