@@ -1,3 +1,6 @@
 [submodule "software/nanogui"]
 	path = software/nanogui
 	url = https://github.com/wjakob/nanogui.git
+[submodule "software/portaudio"]
+	path = software/portaudio
+	url = https://git.assembla.com/portaudio.git

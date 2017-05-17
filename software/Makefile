@@ -12,9 +12,13 @@ SHOWTIME_INCLUDES=-Inanogui/include \
 				 					 -Inanogui/ext/eigen \
 				 					 -Inanogui/ext/glfw/include \
 				 					 -Inanogui/ext/nanovg/src \
+				 					 -Iportaudio/include \
 				 					 -I.
 SHOWTIME_LIBS=-Lnanogui/build -lnanogui \
 		 					-Lnanogui/build/ext_build/glfw/src -lglfw3 \
+		 					-Lportaudio/build \
+		 					-Lportaudio \
+		 					-Lportaudio/build/lib \
 							-framework OpenGL \
 							-framework Cocoa \
 							-framework IOKit \
@@ -33,8 +37,15 @@ deps:
 		make -j4 && \
 		popd
 
+	mkdir -p portaudio/build
+	pushd portaudio/build && \
+		../configure && \
+		make -j4 && \
+		popd
+
 depclean:
 	rm -rf nanogui/build
+	rm -rf portaudio/build
 
 clean:
 	rm -rf $(BUILD_DIR)
