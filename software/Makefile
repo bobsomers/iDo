@@ -17,7 +17,7 @@ SHOWTIME_INCLUDES=-Inanogui/include \
 SHOWTIME_LIBS=-Lnanogui/build -lnanogui \
 		 					-Lnanogui/build/ext_build/glfw/src -lglfw3 \
 		 					-Lportaudio/build \
-		 					-Lportaudio \
+		 					-lportaudio \
 		 					-Lportaudio/build/lib \
 							-framework OpenGL \
 							-framework Cocoa \

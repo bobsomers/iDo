@@ -8,6 +8,7 @@
 
 #include "showtime/all_off_effect.h"
 #include "showtime/all_on_effect.h"
+#include "showtime/audio_device.h"
 #include "showtime/debug_sink.h"
 #include "showtime/network_sink.h"
 #include "showtime/test_effect.h"
@@ -22,6 +23,8 @@ constexpr int kVisualizerSink = 2;
 App::App(GLFWwindow* screen)
   : ng::Screen() {
   initialize(screen, true);
+
+  AudioDevice::initialize();
 
   // Initial effect is all off.
   setEffect(new AllOffEffect);
