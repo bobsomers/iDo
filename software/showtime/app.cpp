@@ -107,6 +107,13 @@ void App::drawContents() {
     c = effect_->process(glfwGetTime() - effect_t_start_, nullptr);
   }
 
+  auto freq_out = AudioDevice::process();
+
+  // for (unsigned int idx = 0; idx < 25; ++idx) {
+  //   const unsigned int freq_idx = (idx * (400 / 25));
+  //   std::cout << "idx: " << idx << "  freq: " << freq_out[freq_idx] << std::endl;
+  // }
+
   glClearColor(0.2f, 0.25f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 

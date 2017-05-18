@@ -1,5 +1,8 @@
 #pragma once
 
+#include <boost/circular_buffer.hpp>
+#include <vector>
+
 #include "portaudio.h"
 
 namespace showtime {
@@ -10,6 +13,8 @@ public:
         static AudioDevice instance;
         return &instance;
     }
+
+    static std::vector<float> process();
 
     static void initialize();
     static void terminate();
@@ -27,6 +32,7 @@ private:
                               PaStreamCallbackFlags statusFlags,
                               void* userData);
 
+    static boost::circular_buffer<float> buffer;
 };
 
 } // namespace showtime

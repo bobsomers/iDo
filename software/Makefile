@@ -13,12 +13,15 @@ SHOWTIME_INCLUDES=-Inanogui/include \
 				 					 -Inanogui/ext/glfw/include \
 				 					 -Inanogui/ext/nanovg/src \
 				 					 -Iportaudio/include \
+		 							 -Ifftw/fftw-3.3.6-pl2/api \
 				 					 -I.
 SHOWTIME_LIBS=-Lnanogui/build -lnanogui \
 		 					-Lnanogui/build/ext_build/glfw/src -lglfw3 \
 		 					-Lportaudio/build \
 		 					-lportaudio \
 		 					-Lportaudio/build/lib \
+		 					-Lfftw/fftw-3.3.6-pl2/.libs \
+		 					-lfftw3f \
 							-framework OpenGL \
 							-framework Cocoa \
 							-framework IOKit \
@@ -42,6 +45,14 @@ deps:
 		../configure && \
 		make -j4 && \
 		popd
+
+	pushd fftw && \
+		curl -O http://www.fftw.org/fftw-3.3.6-pl2.tar.gz && \
+		tar -xzf fftw-3.3.6-pl2.tar.gz
+		pushd fftw/fftw-3.3.6-pl2 && \
+			./configure --enable-float && \
+			make -j4 && \
+			popd
 
 depclean:
 	rm -rf nanogui/build
