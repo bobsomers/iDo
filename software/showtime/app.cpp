@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
+#include <numeric>
 
 #include <GLFW/glfw3.h>
 
@@ -107,12 +108,30 @@ void App::drawContents() {
     c = effect_->process(glfwGetTime() - effect_t_start_, nullptr);
   }
 
+  // TODO: Make this an effect
   auto freq_out = AudioDevice::process();
 
-  // for (unsigned int idx = 0; idx < 25; ++idx) {
-  //   const unsigned int freq_idx = (idx * (400 / 25));
-  //   std::cout << "idx: " << idx << "  freq: " << freq_out[freq_idx] << std::endl;
-  // }
+  if (freq_out.size()) {
+    // Grab the minimum and maximum values in the spectrum
+    auto min = *std::min_element(freq_out.begin(), freq_out.end());
+    auto max = *std::max_element(freq_out.begin(), freq_out.end());
+
+    // Stupid way to slice up each section of the spectrum. Cut it
+    // into 26 sections and find the mean for each and that's your
+    // final magnitude
+    int step = (400 / 26);
+    for (unsigned int idx = 0; idx < 26; ++idx) {
+      const unsigned int freq_idx = idx * step;
+
+      // Accumulate and average the values
+      float total = std::accumulate(freq_out.begin() + freq_idx, freq_out.begin() + freq_idx + step, 0);
+      float average = total / (float)step;
+
+      // Pass on flat values. TODO: replace this with a spectrum of colors, maybe cool to hot?
+      auto adjusted = average - min / (max - min);
+      c[idx] = Color(adjusted, adjusted, adjusted);
+    }
+  }
 
   glClearColor(0.2f, 0.25f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);

@@ -6,8 +6,8 @@
 
 #include "fftw3.h"
 
-constexpr unsigned int kSampleRate = 8000;
-constexpr unsigned int kBufferSize = kSampleRate / 10;
+constexpr unsigned int kSampleRate = 8192;
+constexpr unsigned int kBufferSize = kSampleRate / 4;
 constexpr float PI = 3.1415927;
 
 std::mutex mtx;
@@ -99,7 +99,7 @@ void applyWindow(std::vector<float>& data) {
 }
 
 std::vector<float> AudioDevice::process() {
-    if (buffer.size() != 800) {
+    if (buffer.size() != kBufferSize) {
         return {};
     }
 
@@ -115,23 +115,24 @@ std::vector<float> AudioDevice::process() {
     // Apply Hann window to reduce sidelobes
     applyWindow(data);
 
-    // unsigned int N = data.size();
+    unsigned int N = data.size();
 
     // // Apply FFT
-    // float* out = (float*)fftwf_malloc(sizeof(float) * N);
-    // fftwf_plan p;
-    // p = fftwf_plan_r2r_1d(N, &data.front(), out, FFTW_R2HC, FFTW_FORWARD);
-    // fftwf_execute(p);
+    float* out = (float*)fftwf_malloc(sizeof(float) * N);
+    fftwf_plan p;
+    p = fftwf_plan_r2r_1d(N, &data.front(), out, FFTW_REDFT00, FFTW_ESTIMATE);
+    fftwf_execute(p);
+    fftwf_destroy_plan(p);
 
-    // std::vector<float> output(N/2 + 1);
+    std::vector<float> output(N/2 + 1);
 
-    // output[0] = out[0]*out[0];  /* DC component */
-    // for (unsigned int k = 1; k < (N+1)/2; ++k)  /* (k < N/2 rounded up) */
-    //     output[k] = out[k]*out[k] + out[N-k]*out[N-k];
-    // if (N % 2 == 0) /* N is even */
-    //     output[N/2] = out[N/2]*out[N/2];  /* Nyquist freq. */
+    output[0] = out[0]*out[0];  /* DC component */
+    for (unsigned int k = 1; k < (N+1)/2; ++k)  /* (k < N/2 rounded up) */
+        output[k] = out[k]*out[k] + out[N-k]*out[N-k];
+    if (N % 2 == 0) /* N is even */
+        output[N/2] = out[N/2]*out[N/2];  /* Nyquist freq. */
 
-    // fftwf_free(out);
+    fftwf_free(out);
 
     return output;
 }
