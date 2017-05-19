@@ -61,7 +61,7 @@ void App::createControlsWindow() {
       "       All Off       ",
       "All On",
       "Spectrum",
-      "Test Channels"
+      "Test Channels",
       "Color Fade",
       "Chase",
       "Cycle Effects",
@@ -88,11 +88,11 @@ void App::createControlsWindow() {
       setEffect(new ColorFadeEffect(0.5));
       break;
 
-    case 4:
+    case 5:
       setEffect(new ChaseEffect(0.2));
       break;
 
-    case 5:
+    case 6:
       setEffect(new CycleEffect(10.0, 20.0));
       break;
 

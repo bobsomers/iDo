@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 
+#include "audio_effect.h"
 #include "chase_effect.h"
 #include "color_fade_effect.h"
 #include "utils.h"
@@ -9,7 +10,7 @@
 namespace showtime {
 
 void CycleEffect::randomEffect() {
-  int which = std::rand() % 2;
+  int which = std::rand() % 3;
   switch (which) {
   case 0:
     effect_.reset(new ColorFadeEffect(0.1));
@@ -17,6 +18,10 @@ void CycleEffect::randomEffect() {
 
   case 1:
     effect_.reset(new ChaseEffect(0.2));
+    break;
+
+  case 2:
+    effect_.reset(new AudioEffect);
     break;
 
   default:
@@ -29,6 +34,7 @@ CycleEffect::CycleEffect(double min_t, double max_t) {
   next_time_ = -1.0;
   min_t_ = min_t;
   max_t_ = max_t;
+  which_ = 0;
 }
 
 ColorChannels CycleEffect::process(double t_seconds, void* data) {

@@ -19,6 +19,7 @@ private:
   double min_t_;
   double max_t_;
   EffectPtr effect_;
+  int which_;
 };
 
 } // namespace showtime
