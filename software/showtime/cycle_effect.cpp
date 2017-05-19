@@ -2,34 +2,25 @@
 
 #include <cstdlib>
 
-#include "all_on_effect.h"
-#include "all_off_effect.h"
+#include "chase_effect.h"
 #include "color_fade_effect.h"
-#include "test_effect.h"
+#include "utils.h"
 
 namespace showtime {
 
-double randomDelay(double min, double max) {
-  return (static_cast<float>(std::rand()) / RAND_MAX) * (max - min) + min;
-}
-
 void CycleEffect::randomEffect() {
-  int which = std::rand() % 3;
+  int which = std::rand() % 2;
   switch (which) {
   case 0:
-    effect_.reset(new AllOnEffect);
-    break;
-
-  case 1:
-    effect_.reset(new TestEffect);
-    break;
-
-  case 2:
     effect_.reset(new ColorFadeEffect(0.1));
     break;
 
+  case 1:
+    effect_.reset(new ChaseEffect(0.2));
+    break;
+
   default:
-    effect_.reset(new AllOffEffect);
+    effect_.reset(new ChaseEffect(0.2));
     break;
   }
 }

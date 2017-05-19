@@ -2,15 +2,9 @@
 
 #include <cstdlib>
 
-namespace showtime {
+#include "utils.h"
 
-Color randomColor() {
-  Color c;
-  c.r = (static_cast<float>(std::rand()) / RAND_MAX) * 0.75f + 0.25f;
-  c.g = (static_cast<float>(std::rand()) / RAND_MAX) * 0.75f + 0.25f;
-  c.b = (static_cast<float>(std::rand()) / RAND_MAX) * 0.75f + 0.25f;
-  return c;
-}
+namespace showtime {
 
 ColorFadeEffect::ColorFadeEffect(double delay) {
   for (int i = 0; i < 26; ++i) {

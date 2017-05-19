@@ -19,7 +19,6 @@ SHOWTIME_LIBS=-Lnanogui/build -lnanogui \
 		 					-Lnanogui/build/ext_build/glfw/src -lglfw3 \
 		 					-Lportaudio/build \
 		 					-lportaudio \
-		 					-Lportaudio/build/lib \
 		 					-Lfftw/fftw-3.3.6-pl2/.libs \
 		 					-lfftw3f \
 							-framework OpenGL \

@@ -10,6 +10,7 @@
 #include "showtime/all_on_effect.h"
 #include "showtime/audio_device.h"
 #include "showtime/color_fade_effect.h"
+#include "showtime/chase_effect.h"
 #include "showtime/cycle_effect.h"
 #include "showtime/debug_sink.h"
 #include "showtime/network_sink.h"
@@ -62,6 +63,7 @@ void App::createControlsWindow() {
       "Spectrum",
       "Test Channels"
       "Color Fade",
+      "Chase",
       "Cycle Effects",
   });
   cb->setCallback([this](int selected) {
@@ -87,6 +89,10 @@ void App::createControlsWindow() {
       break;
 
     case 4:
+      setEffect(new ChaseEffect(0.2));
+      break;
+
+    case 5:
       setEffect(new CycleEffect(10.0, 20.0));
       break;
 
