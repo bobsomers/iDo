@@ -15,8 +15,9 @@ ColorChannels AudioEffect::process(double t_seconds, void* /*data*/) {
 
   if (freq_out.size()) {
     // Grab the minimum and maximum values in the spectrum
-    auto min = *std::min_element(freq_out.begin(), freq_out.end());
-    auto max = *std::max_element(freq_out.begin(), freq_out.end());
+
+    ColorGradient colorGradient;    // Used to create a nice array of different colors.
+    colorGradient.createGradient1();
 
     // Stupid way to slice up each section of the spectrum. Cut it
     // into c.size() sections and find the mean for each and that's
@@ -29,9 +30,9 @@ ColorChannels AudioEffect::process(double t_seconds, void* /*data*/) {
       float total = std::accumulate(freq_out.begin() + freq_idx, freq_out.begin() + freq_idx + step, 0);
       float average = total / (float)step;
 
-      // Pass on flat values. TODO: replace this with a spectrum of colors, maybe cool to hot?
-      auto adjusted = average - min / (max - min);
-      c[idx] = Color(adjusted, adjusted, adjusted);
+      // Pass the average value to the gradient map. We're not doing any stretching of the average value
+      // because we're lazy and we don't seem to need to. Might require some tweaking though.
+      colorGradient.getColorAtValue(average, c[idx].r, c[idx].g, c[idx].b);
     }
   }
 
