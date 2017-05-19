@@ -9,6 +9,7 @@
 #include "showtime/all_off_effect.h"
 #include "showtime/all_on_effect.h"
 #include "showtime/audio_device.h"
+#include "showtime/color_fade_effect.h"
 #include "showtime/debug_sink.h"
 #include "showtime/network_sink.h"
 #include "showtime/test_effect.h"
@@ -59,6 +60,7 @@ void App::createControlsWindow() {
       "All On",
       "Spectrum",
       "Test Channels"
+      "Color Fade",
   });
   cb->setCallback([this](int selected) {
     switch (selected) {
@@ -76,6 +78,10 @@ void App::createControlsWindow() {
 
     case 3:
       setEffect(new TestEffect);
+      break;
+
+    case 4:
+      setEffect(new ColorFadeEffect(0.5));
       break;
 
     default:
