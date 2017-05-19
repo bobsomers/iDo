@@ -1,7 +1,6 @@
 #include "color_fade_effect.h"
 
 #include <cstdlib>
-#include <iostream>
 
 namespace showtime {
 
